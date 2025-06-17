@@ -231,67 +231,52 @@
       editDocId = null;
     };
 
+    // === كود تصدير Excel مع شيت إحصائيات ===
     document.getElementById('export-btn').onclick = () => {
-  db.collection('devices').get().then(snapshot => {
-    const data = [];
-    let countCamera = 0, countNVR = 0, countSwitch = 0;
+      db.collection('devices').get().then(snapshot => {
+        const data = [];
+        let countCamera = 0, countNVR = 0, countSwitch = 0;
 
-    snapshot.forEach(doc => {
-      const d = doc.data();
-      if (d.deviceType === 'Camera') countCamera++;
-      else if (d.deviceType === 'NVR') countNVR++;
-      else if (d.deviceType === 'Switch') countSwitch++;
+        snapshot.forEach(doc => {
+          const d = doc.data();
+          if (d.deviceType === 'Camera') countCamera++;
+          else if (d.deviceType === 'NVR') countNVR++;
+          else if (d.deviceType === 'Switch') countSwitch++;
 
-      data.push({
-        "Site Location": d.siteLocation,
-        "Device Name": d.deviceName,
-        "Username": d.username,
-        "Password": d.password,
-        "Verification Code": d.verificationCode || '',
-        "Port NVR": d.portNVR || '',
-        "Used Ports": d.usedPorts || '',
-        "Available": (Number(d.portNVR || 0) - Number(d.usedPorts || 0)),
-        "Device Type": d.deviceType
-      });
-    });
+          data.push({
+            "Site Location": d.siteLocation,
+            "Device Name": d.deviceName,
+            "Username": d.username,
+            "Password": d.password,
+            "Verification Code": d.verificationCode || '',
+            "Port NVR": d.portNVR || '',
+            "Used Ports": d.usedPorts || '',
+            "Available": (Number(d.portNVR || 0) - Number(d.usedPorts || 0)),
+            "Device Type": d.deviceType
+          });
+        });
 
-    // بيانات الإحصائيات
-    const statsData = [
-      ["📊 تقرير ملخص الأجهزة"],
-      ["عدد الكاميرات", countCamera],
-      ["عدد أجهزة NVR", countNVR],
-      ["عدد السويتشات", countSwitch],
-      [],
-      ["📋 تفاصيل الأجهزة"]
-    ];
+        // شيت الإحصائيات
+        const summaryData = [
+          ["📊 Device Summary Report"],
+          ["Date", new Date().toLocaleString()],
+          [],
+          ["Device Type", "Count"],
+          ["Camera", countCamera],
+          ["NVR", countNVR],
+          ["Switch", countSwitch]
+        ];
+        const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
 
-    const statsSheet = XLSX.utils.aoa_to_sheet(statsData); // أول جزء: الإحصائيات
-    const dataSheet = XLSX.utils.json_to_sheet(data, {origin: -1}); // تاني جزء: بيانات الأجهزة
-    const finalSheet = Object.assign(statsSheet, dataSheet); // دمج الورقتين
+        // شيت بيانات الأجهزة
+        const deviceSheet = XLSX.utils.json_to_sheet(data);
 
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, finalSheet, "Device Report");
-
-    // تنسيق بسيط (اختياري)
-    const range = XLSX.utils.decode_range(finalSheet['!ref']);
-    for (let C = range.s.c; C <= range.e.c; ++C) {
-      const address = XLSX.utils.encode_cell({c: C, r: statsData.length});
-      if (finalSheet[address]) {
-        finalSheet[address].s = {
-          fill: { fgColor: { rgb: "DDDDDD" } },
-          font: { bold: true }
-        };
-      }
-    }
-
-    XLSX.writeFile(workbook, "Device_Report.xlsx");
-  });
-};
-
-        const worksheet = XLSX.utils.json_to_sheet(data);
+        // إنشاء الملف وتصديره
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Devices");
-        XLSX.writeFile(workbook, "devices.xlsx");
+        XLSX.utils.book_append_sheet(workbook, summarySheet, "📊 Summary");
+        XLSX.utils.book_append_sheet(workbook, deviceSheet, "📋 Devices");
+
+        XLSX.writeFile(workbook, "NVR_Device_Report.xlsx");
       });
     };
 
