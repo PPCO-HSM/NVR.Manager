@@ -5,6 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>NVR Manager</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body { background-color: #f8f9fa; }
+    h2 { color: #0d6efd; }
+    .navbar { box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .table-striped > tbody > tr:nth-of-type(odd) {
+      background-color: #f2f2f2;
+    }
+    th, td { vertical-align: middle !important; }
+    .form-control, .form-select { border-radius: 0.5rem; }
+    .btn { border-radius: 0.5rem; }
+  </style>
 </head>
 <body>
   <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -26,27 +37,13 @@
     <form id="device-form" class="mb-4">
       <input type="hidden" id="doc-id" />
       <div class="row g-3">
-        <div class="col-md-4">
-          <input type="text" class="form-control" id="site-location" placeholder="Site Location" required />
-        </div>
-        <div class="col-md-4">
-          <input type="text" class="form-control" id="device-name" placeholder="Device Name" required />
-        </div>
-        <div class="col-md-4">
-          <input type="text" class="form-control" id="username" placeholder="Username" required />
-        </div>
-        <div class="col-md-4">
-          <input type="text" class="form-control" id="password" placeholder="Password" required />
-        </div>
-        <div class="col-md-4">
-          <input type="text" class="form-control" id="verification-code" placeholder="Verification Code" />
-        </div>
-        <div class="col-md-4">
-          <input type="number" class="form-control" id="port-nvr" placeholder="Port NVR" />
-        </div>
-        <div class="col-md-4">
-          <input type="number" class="form-control" id="used-ports" placeholder="Used Ports" />
-        </div>
+        <div class="col-md-4"><input type="text" class="form-control" id="site-location" placeholder="Site Location" required /></div>
+        <div class="col-md-4"><input type="text" class="form-control" id="device-name" placeholder="Device Name" required /></div>
+        <div class="col-md-4"><input type="text" class="form-control" id="username" placeholder="Username" required /></div>
+        <div class="col-md-4"><input type="text" class="form-control" id="password" placeholder="Password" required /></div>
+        <div class="col-md-4"><input type="text" class="form-control" id="verification-code" placeholder="Verification Code" /></div>
+        <div class="col-md-4"><input type="number" class="form-control" id="port-nvr" placeholder="Port NVR" /></div>
+        <div class="col-md-4"><input type="number" class="form-control" id="used-ports" placeholder="Used Ports" /></div>
         <div class="col-md-4">
           <select class="form-select" id="device-type" required>
             <option value="" disabled selected>Device Type</option>
@@ -81,6 +78,7 @@
     <button id="export-btn" class="btn btn-primary">تصدير Excel</button>
   </div>
 
+  <!-- Scripts -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -97,7 +95,6 @@
       measurementId: "G-GGS0SZCMD2"
     };
     firebase.initializeApp(firebaseConfig);
-
     const auth = firebase.auth();
     const db = firebase.firestore();
 
@@ -135,8 +132,7 @@
             <td>
               <button class="btn btn-sm btn-warning edit-btn" data-id="${doc.id}">تعديل</button>
               <button class="btn btn-sm btn-danger delete-btn" data-id="${doc.id}">حذف</button>
-            </td>
-          `;
+            </td>`;
           tbody.appendChild(tr);
         });
 
@@ -146,14 +142,14 @@
             db.collection('devices').doc(id).get().then(doc => {
               const d = doc.data();
               document.getElementById('doc-id').value = id;
-              document.getElementById('site-location').value = d.siteLocation;
-              document.getElementById('device-name').value = d.deviceName;
-              document.getElementById('username').value = d.username;
-              document.getElementById('password').value = d.password;
-              document.getElementById('verification-code').value = d.verificationCode || '';
-              document.getElementById('port-nvr').value = d.portNVR || '';
-              document.getElementById('used-ports').value = d.usedPorts || '';
-              document.getElementById('device-type').value = d.deviceType;
+              form['site-location'].value = d.siteLocation;
+              form['device-name'].value = d.deviceName;
+              form['username'].value = d.username;
+              form['password'].value = d.password;
+              form['verification-code'].value = d.verificationCode || '';
+              form['port-nvr'].value = d.portNVR || '';
+              form['used-ports'].value = d.usedPorts || '';
+              form['device-type'].value = d.deviceType;
               submitBtn.textContent = 'تحديث الجهاز';
               cancelEditBtn.classList.remove('d-none');
               editDocId = id;
@@ -231,7 +227,18 @@
       editDocId = null;
     };
 
-    // === كود تصدير Excel مع شيت إحصائيات ===
+    document.getElementById('search-input').addEventListener('input', function() {
+      const query = this.value.toLowerCase();
+      const rows = document.querySelectorAll('#devices-table tbody tr');
+      rows.forEach(row => {
+        const cellsText = Array.from(row.cells)
+          .slice(0, row.cells.length - 1)
+          .map(td => td.textContent.toLowerCase())
+          .join(' ');
+        row.style.display = cellsText.includes(query) ? '' : 'none';
+      });
+    });
+
     document.getElementById('export-btn').onclick = () => {
       db.collection('devices').get().then(snapshot => {
         const data = [];
@@ -256,41 +263,25 @@
           });
         });
 
-        // شيت الإحصائيات
-        const summaryData = [
-          ["📊 Device Summary Report"],
-          ["Date", new Date().toLocaleString()],
+        const statsData = [
+          ["📊 تقرير ملخص الأجهزة"],
+          ["عدد الكاميرات", countCamera],
+          ["عدد أجهزة NVR", countNVR],
+          ["عدد السويتشات", countSwitch],
           [],
-          ["Device Type", "Count"],
-          ["Camera", countCamera],
-          ["NVR", countNVR],
-          ["Switch", countSwitch]
+          ["📋 تفاصيل الأجهزة"]
         ];
-        const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
 
-        // شيت بيانات الأجهزة
-        const deviceSheet = XLSX.utils.json_to_sheet(data);
+        const statsSheet = XLSX.utils.aoa_to_sheet(statsData);
+        const dataSheet = XLSX.utils.json_to_sheet(data, {origin: -1});
+        const finalSheet = Object.assign(statsSheet, dataSheet);
 
-        // إنشاء الملف وتصديره
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, summarySheet, "📊 Summary");
-        XLSX.utils.book_append_sheet(workbook, deviceSheet, "📋 Devices");
+        XLSX.utils.book_append_sheet(workbook, finalSheet, "Device Report");
 
-        XLSX.writeFile(workbook, "NVR_Device_Report.xlsx");
+        XLSX.writeFile(workbook, "Device_Report.xlsx");
       });
     };
-
-    document.getElementById('search-input').addEventListener('input', function() {
-      const query = this.value.toLowerCase();
-      const rows = document.querySelectorAll('#devices-table tbody tr');
-      rows.forEach(row => {
-        const cellsText = Array.from(row.cells)
-          .slice(0, row.cells.length - 1)
-          .map(td => td.textContent.toLowerCase())
-          .join(' ');
-        row.style.display = cellsText.includes(query) ? '' : 'none';
-      });
-    });
   </script>
 </body>
 </html>
