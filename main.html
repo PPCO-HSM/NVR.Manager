@@ -140,6 +140,11 @@
         docs.push({ id: doc.id, data });
       }
     });
+    docs.sort((a, b) => {
+  const ipA = a.data.ipAddress || '';
+  const ipB = b.data.ipAddress || '';
+  return ipA.localeCompare(ipB, undefined, { numeric: true, sensitivity: 'base' });
+});
 
     docs.forEach(({ id, data: d }) => {
       const available = (Number(d.portNVR || 0) - Number(d.usedPorts || 0));
