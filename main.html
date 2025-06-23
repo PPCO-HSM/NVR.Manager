@@ -39,6 +39,9 @@
       <div class="row g-3">
         <div class="col-md-4"><input type="text" class="form-control" id="site-location" placeholder="Site Location" required /></div>
         <div class="col-md-4"><input type="text" class="form-control" id="device-name" placeholder="Device Name" required /></div>
+
+        <div class="col-md-4"><input type="text" class="form-control" id="ip" placeholder="ip address" required /></div>
+
         <div class="col-md-4"><input type="text" class="form-control" id="username" placeholder="Username" required /></div>
         <div class="col-md-4"><input type="text" class="form-control" id="password" placeholder="Password" required /></div>
         <div class="col-md-4"><input type="text" class="form-control" id="verification-code" placeholder="Verification Code" /></div>
@@ -144,6 +147,10 @@
               document.getElementById('doc-id').value = id;
               form['site-location'].value = d.siteLocation;
               form['device-name'].value = d.deviceName;
+
+              form['ip'].value = d.deviceName;
+
+
               form['username'].value = d.username;
               form['password'].value = d.password;
               form['verification-code'].value = d.verificationCode || '';
@@ -194,6 +201,10 @@
       const data = {
         siteLocation: form['site-location'].value,
         deviceName: form['device-name'].value,
+
+        ip: form['ip'].value,
+
+
         username: form['username'].value,
         password: form['password'].value,
         verificationCode: form['verification-code'].value,
@@ -253,6 +264,7 @@
           data.push({
             "Site Location": d.siteLocation,
             "Device Name": d.deviceName,
+            "ip": d.ip,
             "Username": d.username,
             "Password": d.password,
             "Verification Code": d.verificationCode || '',
