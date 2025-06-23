@@ -39,12 +39,12 @@
       <div class="row g-3">
         <div class="col-md-4"><input type="text" class="form-control" id="site-location" placeholder="Site Location" required /></div>
         <div class="col-md-4"><input type="text" class="form-control" id="device-name" placeholder="Device Name" required /></div>
+        <div class="col-md-4"><input type="text" class="form-control" id="ip-address" placeholder="IP Address" required /></div>
         <div class="col-md-4"><input type="text" class="form-control" id="username" placeholder="Username" required /></div>
         <div class="col-md-4"><input type="text" class="form-control" id="password" placeholder="Password" required /></div>
         <div class="col-md-4"><input type="text" class="form-control" id="verification-code" placeholder="Verification Code" /></div>
         <div class="col-md-4"><input type="number" class="form-control" id="port-nvr" placeholder="Port NVR" /></div>
         <div class="col-md-4"><input type="number" class="form-control" id="used-ports" placeholder="Used Ports" /></div>
-        <div class="col-md-4"><input type="text" class="form-control" id="ip-address" placeholder="IP Address" required /></div>
         <div class="col-md-4">
           <select class="form-select" id="device-type" required>
             <option value="" disabled selected>Device Type</option>
@@ -63,13 +63,13 @@
         <tr>
           <th>Site Location</th>
           <th>Device Name</th>
+          <th>IP Address</th>
           <th>Username</th>
           <th>Password</th>
           <th>Verification Code</th>
           <th>Port NVR</th>
           <th>Used Ports</th>
           <th>Available</th>
-          <th>IP Address</th>
           <th>Device Type</th>
           <th>عمليات</th>
         </tr>
@@ -126,13 +126,14 @@
           tr.innerHTML = `
             <td>${d.siteLocation}</td>
             <td>${d.deviceName}</td>
+            <td>${d.ipAddress || ''}</td>
             <td>${d.username}</td>
             <td>${d.password}</td>
             <td>${d.verificationCode || ''}</td>
             <td>${d.portNVR || ''}</td>
             <td>${d.usedPorts || ''}</td>
             <td>${available}</td>
-            <td>${d.ipAddress || ''}</td>
+
             <td>${d.deviceType}</td>
             <td>
               <button class="btn btn-sm btn-warning edit-btn" data-id="${doc.id}">تعديل</button>
@@ -149,12 +150,12 @@
               document.getElementById('doc-id').value = id;
               form['site-location'].value = d.siteLocation;
               form['device-name'].value = d.deviceName;
+              form['ip-address'].value = d.ipAddress || '';
               form['username'].value = d.username;
               form['password'].value = d.password;
               form['verification-code'].value = d.verificationCode || '';
               form['port-nvr'].value = d.portNVR || '';
               form['used-ports'].value = d.usedPorts || '';
-              form['ip-address'].value = d.ipAddress || '';
               form['device-type'].value = d.deviceType;
               submitBtn.textContent = 'تحديث الجهاز';
               cancelEditBtn.classList.remove('d-none');
@@ -201,13 +202,13 @@
       const data = {
         siteLocation: form['site-location'].value,
         deviceName: form['device-name'].value,
+        ipAddress: form['ip-address'].value,
         username: form['username'].value,
         password: form['password'].value,
         verificationCode: form['verification-code'].value,
         portNVR: Number(form['port-nvr'].value) || 0,
         usedPorts: Number(form['used-ports'].value) || 0,
         deviceType: form['device-type'].value,
-        ipAddress: form['ip-address'].value
       };
 
       if(editDocId){
@@ -261,13 +262,13 @@
           data.push({
             "Site Location": d.siteLocation,
             "Device Name": d.deviceName,
+            "IP Address": d.ipAddress || '',
             "Username": d.username,
             "Password": d.password,
             "Verification Code": d.verificationCode || '',
             "Port NVR": d.portNVR || '',
             "Used Ports": d.usedPorts || '',
             "Available": (Number(d.portNVR || 0) - Number(d.usedPorts || 0)),
-            "IP Address": d.ipAddress || '',
             "Device Type": d.deviceType
           });
         });
