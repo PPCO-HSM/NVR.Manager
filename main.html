@@ -127,12 +127,17 @@
         docs.push({ id: doc.id, data: doc.data() });
       });
 
-      // ترتيب حسب IP Address
-      docs.sort((a, b) => {
-        const ipA = a.data.ipAddress || '';
-        const ipB = b.data.ipAddress || '';
-        return ipA.localeCompare(ipB, undefined, { numeric: true, sensitivity: 'base' });
-      });
+      // ترتيب حسب Device Type أولاً ثم IP Address
+docs.sort((a, b) => {
+  const typeA = a.data.deviceType || '';
+  const typeB = b.data.deviceType || '';
+  if (typeA !== typeB) return typeA.localeCompare(typeB);
+  
+  // لو نفس الـ type، رتبهم حسب الـ IP Address
+  const ipA = a.data.ipAddress || '';
+  const ipB = b.data.ipAddress || '';
+  return ipA.localeCompare(ipB, undefined, { numeric: true, sensitivity: 'base' });
+});
 
       docs.forEach(({ id, data: d }) => {
         const available = (Number(d.portNVR || 0) - Number(d.usedPorts || 0));
