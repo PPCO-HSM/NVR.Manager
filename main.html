@@ -86,212 +86,227 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyD4wU3IYIImaBQEfDmNibN7DiDZIkfezdg",
-      authDomain: "nvr-manager.firebaseapp.com",
-      projectId: "nvr-manager",
-      storageBucket: "nvr-manager.firebasestorage.app",
-      messagingSenderId: "932622815202",
-      appId: "1:932622815202:web:f50ffafb4f6584278fb3bb",
-      measurementId: "G-GGS0SZCMD2"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+ <!-- كل الكود كما هو بالضبط -->
+<!-- ... (الكود كما هو إلى أن نصل لـ loadDevices) -->
 
-    auth.onAuthStateChanged(user => {
-      if (!user) {
-        window.location.href = 'login.html';
-      }
-    });
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyD4wU3IYIImaBQEfDmNibN7DiDZIkfezdg",
+    authDomain: "nvr-manager.firebaseapp.com",
+    projectId: "nvr-manager",
+    storageBucket: "nvr-manager.firebasestorage.app",
+    messagingSenderId: "932622815202",
+    appId: "1:932622815202:web:f50ffafb4f6584278fb3bb",
+    measurementId: "G-GGS0SZCMD2"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
 
-    document.getElementById('logout-btn').onclick = () => auth.signOut();
-
-    const form = document.getElementById('device-form');
-    const submitBtn = document.getElementById('submit-btn');
-    const cancelEditBtn = document.getElementById('cancel-edit-btn');
-    let editDocId = null;
-
-    function loadDevices() {
-      const tbody = document.querySelector('#devices-table tbody');
-      tbody.innerHTML = '';
-      db.collection('devices').get().then(snapshot => {
-        let totalUsedPorts = 0;
-        snapshot.forEach(doc => {
-          const d = doc.data();
-          const available = (Number(d.portNVR || 0) - Number(d.usedPorts || 0));
-          totalUsedPorts += Number(d.usedPorts || 0);
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${d.siteLocation}</td>
-            <td>${d.deviceName}</td>
-            <td>${d.ipAddress || ''}</td>
-            <td>${d.username}</td>
-            <td>${d.password}</td>
-            <td>${d.verificationCode || ''}</td>
-            <td>${d.portNVR || ''}</td>
-            <td>${d.usedPorts || ''}</td>
-            <td>${available}</td>
-
-            <td>${d.deviceType}</td>
-            <td>
-              <button class="btn btn-sm btn-warning edit-btn" data-id="${doc.id}">تعديل</button>
-              <button class="btn btn-sm btn-danger delete-btn" data-id="${doc.id}">حذف</button>
-            </td>`;
-          tbody.appendChild(tr);
-        });
-
-        document.querySelectorAll('.edit-btn').forEach(btn => {
-          btn.onclick = () => {
-            const id = btn.getAttribute('data-id');
-            db.collection('devices').doc(id).get().then(doc => {
-              const d = doc.data();
-              document.getElementById('doc-id').value = id;
-              form['site-location'].value = d.siteLocation;
-              form['device-name'].value = d.deviceName;
-              form['ip-address'].value = d.ipAddress || '';
-              form['username'].value = d.username;
-              form['password'].value = d.password;
-              form['verification-code'].value = d.verificationCode || '';
-              form['port-nvr'].value = d.portNVR || '';
-              form['used-ports'].value = d.usedPorts || '';
-              form['device-type'].value = d.deviceType;
-              submitBtn.textContent = 'تحديث الجهاز';
-              cancelEditBtn.classList.remove('d-none');
-              editDocId = id;
-            });
-          };
-        });
-
-        document.querySelectorAll('.delete-btn').forEach(btn => {
-          btn.onclick = () => {
-            if(confirm('هل تريد حذف هذا الجهاز؟')){
-              db.collection('devices').doc(btn.getAttribute('data-id')).delete().then(() => {
-                loadDevices();
-                loadDeviceStats();
-              });
-            }
-          };
-        });
-
-        loadDeviceStats(totalUsedPorts);
-      });
+  auth.onAuthStateChanged(user => {
+    if (!user) {
+      window.location.href = 'login.html';
     }
+  });
 
-    function loadDeviceStats(totalUsedPorts = 0) {
-      db.collection('devices').get().then(snapshot => {
-        const counts = {};
-        snapshot.forEach(doc => {
-          const type = doc.data().deviceType || "Unknown";
-          counts[type] = (counts[type] || 0) + 1;
-        });
+  document.getElementById('logout-btn').onclick = () => auth.signOut();
 
-        const statsBar = document.getElementById('device-type-stats');
-        statsBar.innerHTML = Object.entries(counts)
-          .map(([type, count]) => `<span class="me-2">${type}: ${count}</span>`)
-          .join('');
-        statsBar.innerHTML += `<span class="me-2">Used Ports: ${totalUsedPorts}</span>`;
+  const form = document.getElementById('device-form');
+  const submitBtn = document.getElementById('submit-btn');
+  const cancelEditBtn = document.getElementById('cancel-edit-btn');
+  let editDocId = null;
+
+  function loadDevices() {
+    const tbody = document.querySelector('#devices-table tbody');
+    tbody.innerHTML = '';
+    db.collection('devices').get().then(snapshot => {
+      let totalUsedPorts = 0;
+      const docs = [];
+
+      snapshot.forEach(doc => {
+        docs.push({ id: doc.id, data: doc.data() });
       });
-    }
 
-    loadDevices();
-
-    form.addEventListener('submit', e => {
-      e.preventDefault();
-      const data = {
-        siteLocation: form['site-location'].value,
-        deviceName: form['device-name'].value,
-        ipAddress: form['ip-address'].value,
-        username: form['username'].value,
-        password: form['password'].value,
-        verificationCode: form['verification-code'].value,
-        portNVR: Number(form['port-nvr'].value) || 0,
-        usedPorts: Number(form['used-ports'].value) || 0,
-        deviceType: form['device-type'].value,
-      };
-
-      if(editDocId){
-        db.collection('devices').doc(editDocId).set(data).then(() => {
-          alert('تم تحديث الجهاز');
-          form.reset();
-          submitBtn.textContent = 'إضافة جهاز';
-          cancelEditBtn.classList.add('d-none');
-          editDocId = null;
-          loadDevices();
-        });
-      } else {
-        db.collection('devices').add(data).then(() => {
-          alert('تم إضافة الجهاز');
-          form.reset();
-          loadDevices();
-        });
-      }
-    });
-
-    cancelEditBtn.onclick = () => {
-      form.reset();
-      submitBtn.textContent = 'إضافة جهاز';
-      cancelEditBtn.classList.add('d-none');
-      editDocId = null;
-    };
-
-    document.getElementById('search-input').addEventListener('input', function() {
-      const query = this.value.toLowerCase();
-      const rows = document.querySelectorAll('#devices-table tbody tr');
-      rows.forEach(row => {
-        const cellsText = Array.from(row.cells)
-          .slice(0, row.cells.length - 1)
-          .map(td => td.textContent.toLowerCase())
-          .join(' ');
-        row.style.display = cellsText.includes(query) ? '' : 'none';
+      // ترتيب حسب IP Address
+      docs.sort((a, b) => {
+        const ipA = a.data.ipAddress || '';
+        const ipB = b.data.ipAddress || '';
+        return ipA.localeCompare(ipB, undefined, { numeric: true, sensitivity: 'base' });
       });
-    });
 
-    document.getElementById('export-btn').onclick = () => {
-      db.collection('devices').get().then(snapshot => {
-        const data = [];
-        let countCamera = 0, countNVR = 0, countSwitch = 0;
+      docs.forEach(({ id, data: d }) => {
+        const available = (Number(d.portNVR || 0) - Number(d.usedPorts || 0));
+        totalUsedPorts += Number(d.usedPorts || 0);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${d.siteLocation}</td>
+          <td>${d.deviceName}</td>
+          <td>${d.ipAddress || ''}</td>
+          <td>${d.username}</td>
+          <td>${d.password}</td>
+          <td>${d.verificationCode || ''}</td>
+          <td>${d.portNVR || ''}</td>
+          <td>${d.usedPorts || ''}</td>
+          <td>${available}</td>
+          <td>${d.deviceType}</td>
+          <td>
+            <button class="btn btn-sm btn-warning edit-btn" data-id="${id}">تعديل</button>
+            <button class="btn btn-sm btn-danger delete-btn" data-id="${id}">حذف</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
 
-        snapshot.forEach(doc => {
-          const d = doc.data();
-          if (d.deviceType === 'Camera') countCamera++;
-          else if (d.deviceType === 'NVR') countNVR++;
-          else if (d.deviceType === 'Switch') countSwitch++;
-
-          data.push({
-            "Site Location": d.siteLocation,
-            "Device Name": d.deviceName,
-            "IP Address": d.ipAddress || '',
-            "Username": d.username,
-            "Password": d.password,
-            "Verification Code": d.verificationCode || '',
-            "Port NVR": d.portNVR || '',
-            "Used Ports": d.usedPorts || '',
-            "Available": (Number(d.portNVR || 0) - Number(d.usedPorts || 0)),
-            "Device Type": d.deviceType
+      document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.onclick = () => {
+          const id = btn.getAttribute('data-id');
+          db.collection('devices').doc(id).get().then(doc => {
+            const d = doc.data();
+            document.getElementById('doc-id').value = id;
+            form['site-location'].value = d.siteLocation;
+            form['device-name'].value = d.deviceName;
+            form['ip-address'].value = d.ipAddress || '';
+            form['username'].value = d.username;
+            form['password'].value = d.password;
+            form['verification-code'].value = d.verificationCode || '';
+            form['port-nvr'].value = d.portNVR || '';
+            form['used-ports'].value = d.usedPorts || '';
+            form['device-type'].value = d.deviceType;
+            submitBtn.textContent = 'تحديث الجهاز';
+            cancelEditBtn.classList.remove('d-none');
+            editDocId = id;
           });
-        });
-
-        const statsData = [
-          ["\ud83d\udcca تقرير ملخص الأجهزة"],
-          ["عدد الكاميرات", countCamera],
-          ["عدد أجهزة NVR", countNVR],
-          ["عدد السويتشات", countSwitch],
-          [],
-          ["\ud83d\udccb تفاصيل الأجهزة"]
-        ];
-
-        const statsSheet = XLSX.utils.aoa_to_sheet(statsData);
-        const dataSheet = XLSX.utils.json_to_sheet(data, {origin: -1});
-        const finalSheet = Object.assign(statsSheet, dataSheet);
-
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, finalSheet, "Device Report");
-
-        XLSX.writeFile(workbook, "Device_Report.xlsx");
+        };
       });
+
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.onclick = () => {
+          if(confirm('هل تريد حذف هذا الجهاز؟')){
+            db.collection('devices').doc(btn.getAttribute('data-id')).delete().then(() => {
+              loadDevices();
+              loadDeviceStats();
+            });
+          }
+        };
+      });
+
+      loadDeviceStats(totalUsedPorts);
+    });
+  }
+
+  function loadDeviceStats(totalUsedPorts = 0) {
+    db.collection('devices').get().then(snapshot => {
+      const counts = {};
+      snapshot.forEach(doc => {
+        const type = doc.data().deviceType || "Unknown";
+        counts[type] = (counts[type] || 0) + 1;
+      });
+
+      const statsBar = document.getElementById('device-type-stats');
+      statsBar.innerHTML = Object.entries(counts)
+        .map(([type, count]) => `<span class="me-2">${type}: ${count}</span>`)
+        .join('');
+      statsBar.innerHTML += `<span class="me-2">Used Ports: ${totalUsedPorts}</span>`;
+    });
+  }
+
+  loadDevices();
+
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const data = {
+      siteLocation: form['site-location'].value,
+      deviceName: form['device-name'].value,
+      ipAddress: form['ip-address'].value,
+      username: form['username'].value,
+      password: form['password'].value,
+      verificationCode: form['verification-code'].value,
+      portNVR: Number(form['port-nvr'].value) || 0,
+      usedPorts: Number(form['used-ports'].value) || 0,
+      deviceType: form['device-type'].value,
     };
-  </script>
+
+    if(editDocId){
+      db.collection('devices').doc(editDocId).set(data).then(() => {
+        alert('تم تحديث الجهاز');
+        form.reset();
+        submitBtn.textContent = 'إضافة جهاز';
+        cancelEditBtn.classList.add('d-none');
+        editDocId = null;
+        loadDevices();
+      });
+    } else {
+      db.collection('devices').add(data).then(() => {
+        alert('تم إضافة الجهاز');
+        form.reset();
+        loadDevices();
+      });
+    }
+  });
+
+  cancelEditBtn.onclick = () => {
+    form.reset();
+    submitBtn.textContent = 'إضافة جهاز';
+    cancelEditBtn.classList.add('d-none');
+    editDocId = null;
+  };
+
+  document.getElementById('search-input').addEventListener('input', function() {
+    const query = this.value.toLowerCase();
+    const rows = document.querySelectorAll('#devices-table tbody tr');
+    rows.forEach(row => {
+      const cellsText = Array.from(row.cells)
+        .slice(0, row.cells.length - 1)
+        .map(td => td.textContent.toLowerCase())
+        .join(' ');
+      row.style.display = cellsText.includes(query) ? '' : 'none';
+    });
+  });
+
+  document.getElementById('export-btn').onclick = () => {
+    db.collection('devices').get().then(snapshot => {
+      const data = [];
+      let countCamera = 0, countNVR = 0, countSwitch = 0;
+
+      snapshot.forEach(doc => {
+        const d = doc.data();
+        if (d.deviceType === 'Camera') countCamera++;
+        else if (d.deviceType === 'NVR') countNVR++;
+        else if (d.deviceType === 'Switch') countSwitch++;
+
+        data.push({
+          "Site Location": d.siteLocation,
+          "Device Name": d.deviceName,
+          "IP Address": d.ipAddress || '',
+          "Username": d.username,
+          "Password": d.password,
+          "Verification Code": d.verificationCode || '',
+          "Port NVR": d.portNVR || '',
+          "Used Ports": d.usedPorts || '',
+          "Available": (Number(d.portNVR || 0) - Number(d.usedPorts || 0)),
+          "Device Type": d.deviceType
+        });
+      });
+
+      const statsData = [
+        ["📊 تقرير ملخص الأجهزة"],
+        ["عدد الكاميرات", countCamera],
+        ["عدد أجهزة NVR", countNVR],
+        ["عدد السويتشات", countSwitch],
+        [],
+        ["📋 تفاصيل الأجهزة"]
+      ];
+
+      const statsSheet = XLSX.utils.aoa_to_sheet(statsData);
+      const dataSheet = XLSX.utils.json_to_sheet(data, {origin: -1});
+      const finalSheet = Object.assign(statsSheet, dataSheet);
+
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, finalSheet, "Device Report");
+
+      XLSX.writeFile(workbook, "Device_Report.xlsx");
+    });
+  };
+</script>
+
 </body>
 </html>
