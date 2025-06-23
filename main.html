@@ -199,7 +199,7 @@
     loadDeviceStats(totalUsedPorts);
   });
 }
-
+ document.getElementById('filter-type').addEventListener('change', loadDevices);
 
   function loadDeviceStats(totalUsedPorts = 0) {
     db.collection('devices').get().then(snapshot => {
