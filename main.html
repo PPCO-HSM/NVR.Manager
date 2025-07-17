@@ -137,21 +137,20 @@
   <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
   <script>
-   const firebaseConfig = {
-  apiKey: "AIzaSyD4wU3IYIImaBQEfDmNibN7DiDZIkfezdg",
-  authDomain: "nvr-manager.firebaseapp.com",
-  projectId: "nvr-manager",
-  storageBucket: "nvr-manager.firebasestorage.app",
-  messagingSenderId: "932622815202",
-  appId: "1:932622815202:web:f50ffafb4f6584278fb3bb",
-  measurementId: "G-GGS0SZCMD2"
-};
-
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-
-
+    const firebaseConfig = {
+      apiKey: "AIzaSyD4wU3IYIImaBQEfDmNibN7DiDZIkfezdg",
+      authDomain: "nvr-manager.firebaseapp.com",
+      projectId: "nvr-manager",
+      storageBucket: "nvr-manager.firebasestorage.app",
+      messagingSenderId: "932622815202",
+      appId: "1:932622815202:web:f50ffafb4f6584278fb3bb",
+      measurementId: "G-GGS0SZCMD2"
+    };
+    firebase.initializeApp(firebaseConfig);
+  
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+  
     let isAdmin = false;
 
     auth.onAuthStateChanged(user => {
